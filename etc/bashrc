@@ -8,6 +8,7 @@
 ##############################################################################
 
 export COFFEE=${COFFEE-$(readlink -f "$(dirname "$(readlink -f "$BASH_SOURCE")")/../..")}
+export BASH_ENV=${COFFEE}/coffee/etc/bashrc
 
 function coffee::main() {
     local file
