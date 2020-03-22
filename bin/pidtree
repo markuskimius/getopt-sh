@@ -1,0 +1,241 @@
+#!/bin/bash
+
+##############################################################################
+# COFFEE: Buzz up your UNIX login
+# https://github.com/markuskimius/coffee
+#
+# Copyright (c)2020 Mark K. Kim
+# Released under the Apache license 2.0
+# https://github.com/markuskimius/coffee/blob/master/LICENSE
+##############################################################################
+
+function usage() {
+    cat <<EOF
+Display the process tree of one or more processes.  All specified pid(s)'
+ancestors and descendents are shown, but no siblings, in a tree format.  If
+output to a terminal, the specified pid(s) are highlighted.
+
+Usage: ${SCRIPTNAME} [-w] [-i] [PID or REGEX]
+
+  PID                   Show this pid's tree.
+  REGEX                 Show the pid tree of a process whose command matches REGEX.
+                        REGEX never matches the current process.
+
+  -w,--wide             Do not trim the output to the width of the terminal.
+  -i,--ignore-case      Ignore case when matching REGEX.
+
+Examples:
+
+  # Show all process in a tree format.
+  ${SCRIPTNAME} 1
+
+  # Show all bash and python processes in a tree format.
+  ${SCRIPTNAME} bash python
+  ${SCRIPTNAME} 'bash|python'
+
+  # Show all processes in a tree format and highlight ssh and the root
+  ${SCRIPTNAME} 1 ssh
+
+EOF
+}
+
+
+##############################################################################
+# PROGRAM BEGINS HERE
+
+include "getopt.sh"
+
+SCRIPTNAME=$(basename "${BASH_SOURCE}")
+declare -r PIDWIDTH=6   # maximum width of a pid
+declare -r PIDTOP=1     # top pid of the tree (typically 1, "init")
+declare -g PIDS=()      # pids specified on the command line
+declare -g ALLPIDS=()   # all pids to print
+declare -g TERMWDITH=$(tput cols)
+declare -g WIDEMODE=0
+
+
+function main() {
+    local OPTOPT OPTARG OPTERR OPTARRAY
+    local errcount=0
+
+    # Process options
+    while coffee::getopt "hwi" "help,wide,ignore-case" "$@"; do
+        case "$OPTOPT" in
+            -h|--help)         usage && exit 0          ;;
+            -w|--wide)         WIDEMODE=1               ;;
+            -i|--ignore-case)  shopt -s nocasematch     ;;
+            *)                 errcount=$((errcount+1)) ;;
+        esac
+    done
+
+    # Sanity check
+    if (( errcount )); then
+        echo "Type '${SCRIPTNAME} -h' for help." 1>&2
+        exit 1
+    fi
+
+    # Map the PIDs
+    for arg in "${OPTARRAY[@]}"; do
+        local pid
+
+        for pid in $(arg_to_pids "$arg"); do
+            local ppids=( $(ppids_of "$pid") )
+            local cpids=( $(cpids_of "$pid") )
+
+            if (( ${#ppids[@]} || ${#cpids[@]} )); then
+                PIDS+=( "$pid" )
+                ALLPIDS+=( "$pid" "${ppids[@]}" "${cpids[@]}" )
+            elif [[ "$pid" == "$arg" ]]; then
+                echo "$pid: no such pid" 1>&2
+            fi
+        done
+    done
+
+    [[ " ${ALLPIDS[*]} " == *\ ${PIDTOP}\ * ]] && pidtree $PIDTOP
+}
+
+
+function arg_to_pids() {
+    local arg=$1
+
+    if [[ "$arg" =~ ^[0-9]+$ ]]; then
+        echo "$arg"
+    else
+        pid_match "$arg"
+    fi
+}
+
+
+function pid_match() {
+    local re=$1
+    local line
+
+    while IFS= read -r line; do
+        local fields=( $line )
+        local pid=${fields[0]}
+        local cmd=${fields[@]:1}
+
+        if [[ "$cmd" =~ $re ]] && [[ "$pid" != "$$" ]]; then
+            echo "$pid"
+        fi
+    done < <(ps ax -opid=,cmd=)
+}
+
+
+function ppids_of() {
+    local pid=$1
+    local ppid=$(ppid_of "$pid")
+
+    if (( "$ppid" )); then
+        ppids_of "$ppid"
+        echo "$ppid"
+    fi
+}
+
+
+function cpids_of() {
+    local pid=$1
+    local cpids=( $(cpid_of "$pid") )
+    local c
+
+    for c in "${cpids[@]}"; do
+        echo "$c"
+        cpids_of "$c"
+    done
+}
+
+
+function pidtree() {
+    local pid=${1}
+    local depth=${2-}
+    local was_last=${3-1}
+    local cpids=()
+    local c
+
+    # Print the PID at this node
+    if (( "$pid" == "$PIDTOP" )); then
+        print_pid "$pid"
+    else
+        print_pid "$pid" "${depth}+- "
+    fi
+
+    # Get the subset of child nodes is in $ALLPIDS
+    for c in $(cpid_of "$pid"); do
+        if [[ " ${ALLPIDS[*]} " == *\ ${c}\ * ]]; then
+            cpids+=( "$c" )
+        fi
+    done
+
+    # Traverse them
+    for c in "${cpids[@]}"; do
+        local is_last=0
+        local indent="|  "
+
+        # Adjust the indentation for various scenarios
+        (( $was_last )) && indent="   "           # no siblings to draw
+        (( "$pid" == "$PIDTOP" )) && indent=""    # top pid, typically init (pid 1)
+
+        # Calcualte how child node indentation should be drawn
+        if (( c == ${cpids[-1]} )); then
+            is_last=1
+        fi
+
+        pidtree "$c" "${depth}${indent}" $is_last
+    done
+}
+
+
+function print_pid() {
+    local pid=$1
+    local depth=${2-}
+    local cmd=$(command_of "$pid")
+    local color=""
+    local plain=""
+    local output
+
+    if [[ -z "$cmd" ]]; then
+        cmd="*"
+    fi
+
+    if [[ " ${PIDS[*]} " == *\ ${pid}\ * ]] && [[ -t 1 ]]; then
+        color=$'\e[1;31m'
+        plain=$'\e[0m'
+    fi
+
+    # This is what gets output
+    printf -v output "%*s %s%s" $PIDWIDTH "$pid" "$depth" "$cmd"
+
+    # Shorten the output to terminal width if appropriate
+    if ! (( WIDEMODE )) && [[ -t 1 ]]; then
+        output=${output:0:$TERMWDITH}
+    fi
+
+    echo "${color}${output}${plain}"
+}
+
+
+function ppid_of() {
+    local pid=$1
+
+    echo $(ps -oppid= --pid "$pid" 2>/dev/null)
+}
+
+
+function cpid_of() {
+    local pid=$1
+
+    echo $(ps -opid= --ppid "$pid" 2>/dev/null)
+}
+
+
+function command_of() {
+    local pid=$1
+
+    echo $(ps -ww -ocmd= --pid "$pid" 2>/dev/null)
+}
+
+
+##############################################################################
+# ENTRY POINT
+
+main "$@"

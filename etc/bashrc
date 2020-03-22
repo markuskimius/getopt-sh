@@ -1,0 +1,21 @@
+##############################################################################
+# COFFEE: Buzz up your UNIX login
+# https://github.com/markuskimius/coffee
+#
+# Copyright (c)2020 Mark K. Kim
+# Released under the Apache license 2.0
+# https://github.com/markuskimius/coffee/blob/master/LICENSE
+##############################################################################
+
+export COFFEE=${COFFEE-$(readlink -f "$(dirname "$(readlink -f "$BASH_SOURCE")")/../..")}
+
+function coffee::main() {
+    local file
+
+    # Source all startup files
+    for file in "${COFFEE}/coffee/etc/bashrc.d"/*; do
+        source "$file"
+    done
+}
+
+coffee::main

@@ -1,0 +1,80 @@
+#!/bin/bash
+
+##############################################################################
+# COFFEE: Buzz up your UNIX login
+# https://github.com/markuskimius/coffee
+#
+# Copyright (c)2020 Mark K. Kim
+# Released under the Apache license 2.0
+# https://github.com/markuskimius/coffee/blob/master/LICENSE
+##############################################################################
+
+function usage() {
+    cat <<EOF
+Open a file or directory with the native OS program.  Currently only supports
+opening a file or directory in Windows under Cygwin.
+
+Usage: ${SCRIPTNAME} [FILE]
+
+  FILE                  File or directory to open.
+
+Examples:
+
+  # Open the current folder in the OS.
+  ${SCRIPTNAME} .
+
+EOF
+}
+
+
+##############################################################################
+# PROGRAM BEGINS HERE
+
+include "getopt.sh"
+
+SCRIPTNAME=$(basename "${BASH_SOURCE}")
+
+
+function main() {
+    local OPTOPT OPTARG OPTERR OPTARRAY
+    local errcount=0
+
+    # Process options
+    while coffee::getopt "h" "help" "$@"; do
+        case "$OPTOPT" in
+            -h|--help)     usage && exit 0          ;;
+            *)             errcount=$((errcount+1)) ;;
+        esac
+    done
+
+    # Sanity check
+    if (( errcount )); then
+        echo "Type '${SCRIPTNAME} -h' for help." 1>&2
+        exit 1
+    fi
+
+    open "${OPTARRAY[@]}"
+}
+
+
+function open() {
+    path=.
+    if (( $# == 1 )); then
+        path=$1
+    fi
+
+    cd "$(dirname "$path")"
+
+    # Cygwin
+    if [[ -n $(command -v explorer.exe) ]]; then
+        explorer.exe "$(basename "$path")"
+    else
+        echo "Unknown platform"
+    fi
+}
+
+
+##############################################################################
+# ENTRY POINT
+
+main "$@"
