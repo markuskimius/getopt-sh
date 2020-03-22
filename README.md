@@ -17,7 +17,7 @@ $ echo 'source "${HOME}/coffee/coffee/etc/bashrc"' >> ~/.bashrc
 ## What does it do?
 Installing coffee:
 
-* Provides several scripts, bash functions, and libraries.
+* Provides several scripts, functions, and libraries to bash.
 * Sets the environment variable `$COFFEE` to coffee's _parent_ directory.
 * Sets other environment variables:
   * Add `$COFFEE/*/bin` to `$PATH`
@@ -30,5 +30,5 @@ Installing coffee:
 The idea is to be able to unpack packages into `$COFFEE` to automatically set
 it up for use in your UNIX environment.  In that spirit, `etc/bashrc` also
 sources any `$COFFEE/*/etc/bashrc`.  This also means that you must be careful
-to *only unpack trusted packages in `$COFFEE`.*
+to **only unpack trusted packages in `$COFFEE`.**
 
