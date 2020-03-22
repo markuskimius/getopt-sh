@@ -23,9 +23,12 @@ Installing coffee:
   * Add `$COFFEE/*/bin` to `$PATH`
   * Add `$COFFEE/*/lib` to `$PYTHONPATH` that contain python scripts.
   * Add `$COFFEE/*/lib` to `$TCLLIBPATH` that contain pkgIndex.tcl.
+* Sets up vim such that:
+  * `$COFFEE/*/etc/vimrc` are automatically loaded.
+  * `$COFFEE/*` vim plugins are automatically loaded.
 
-The idea is to be able to unpack files into `$COFFEE` to automatically set it
-up for use in your UNIX environment.  In that spirit, `etc/bashrc` also sources
-any `$COFFEE/*/etc/bashrc`.  This also means that you must be careful to *only
-unpack trusted packages in `$COFFEE`.*
+The idea is to be able to unpack packages into `$COFFEE` to automatically set
+it up for use in your UNIX environment.  In that spirit, `etc/bashrc` also
+sources any `$COFFEE/*/etc/bashrc`.  This also means that you must be careful
+to *only unpack trusted packages in `$COFFEE`.*
 
