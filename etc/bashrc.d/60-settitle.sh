@@ -9,32 +9,31 @@
 # https://github.com/markuskimius/coffee/blob/master/LICENSE
 ##############################################################################
 
-alias log=coffee::log
-alias throw=coffee::throw
-alias include=coffee::include
-alias settitle=coffee::settitle
+function coffee::settitle() {
+    TITLE="${*-}"
 
-shopt -s expand_aliases
+    if (( ! $# )); then
+        TITLE="${USER}@${HOSTNAME}"
+    fi
+
+    printf "\e]0;%s\a" "$TITLE"
+}
 
 
 ##############################################################################
 # TEST CODE
 
 if (( ${#BASH_SOURCE[@]} == 1 )); then
+    coffee::include getopt.sh
+
     function main() {
-        myfunction1 "$@"
-    }
+        declare OPTOPT OPTARG OPTARRAY
 
-    function myfunction1() {
-        myfunction2 "$@"
-    }
+        while coffee::getopt "ho:" "help,output:" "$@"; do
+            echo "${OPTOPT}=${OPTARG}"
+        done
 
-    function myfunction2() {
-        myfunction3 "$@"
-    }
-
-    function myfunction3() {
-        throw "Test exception:" 2
+        echo "args=${OPTARRAY[@]}"
     }
 
     main "$@"
