@@ -32,3 +32,10 @@ it up for use in your UNIX environment.  In that spirit, `etc/bashrc` also
 sources any `$COFFEE/*/etc/bashrc`.  This also means that you must be careful
 to **only unpack trusted packages in `$COFFEE`.**
 
+## License
+
+[Apache 2.0]
+
+
+[Apache 2.0]: <https://github.com/markuskimius/coffee/blob/master/LICENSE>
+
