@@ -27,13 +27,9 @@ if (( ${#BASH_SOURCE[@]} == 1 )); then
     coffee::include getopt.sh
 
     function main() {
-        declare OPTOPT OPTARG OPTARRAY
+        coffee::settitle 'Hi there'
 
-        while coffee::getopt "ho:" "help,output:" "$@"; do
-            echo "${OPTOPT}=${OPTARG}"
-        done
-
-        echo "args=${OPTARRAY[@]}"
+        [[ "$TITLE" == 'Hi there' ]] || coffee::throw
     }
 
     main "$@"
