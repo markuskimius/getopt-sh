@@ -22,6 +22,9 @@ Examples:
   # Top 5 connections with the largest send queue sizes
   netstat -tunapl 2>/dev/null | tail -n+2 | ${SCRIPTNAME} sort -nrk3 | head -6
 
+Credits:
+  Adapted from https://unix.stackexchange.com/questions/11859
+
 EOF
 }
 
