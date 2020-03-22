@@ -7,6 +7,3 @@
 # https://github.com/markuskimius/coffee/blob/master/LICENSE
 ##############################################################################
 
-# 00 00 * * * "${HOME}/bin/cronlogger" -H24 -k CRON_SYSMON 'sysmon-app > "${BOND_LOG}/sysmon_$(date "+%Y%m%d_%H:%M:%S").csv"'
-# 01 00 * * * "${HOME}/bin/cronlogger" -s60 CRON_ARCHIVE 'archive-logs -s5 "${BOND_LOG}"/*.* "${BOND_ARCLOG}"'
-# 15 00 * * * "${HOME}/bin/cronlogger" -s60 CRON_PRUNE_ARCHIVE 'prune-logs -d7 "${BOND_ARCLOG}"/*.*'
