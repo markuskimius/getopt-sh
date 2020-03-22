@@ -11,7 +11,7 @@ Source `etc/bashrc` from your bash startup script.  E.g.,
 $ mkdir ~/coffee
 $ cd ~/coffee
 $ git clone https://github.com/markuskimius/coffee.git
-$ echo 'source "${HOME}/coffee/coffee/etc/bashrc" >> ~/.bashrc'
+$ echo 'source "${HOME}/coffee/coffee/etc/bashrc"' >> ~/.bashrc
 ```
 
 ## What does it do?
