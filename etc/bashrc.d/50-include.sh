@@ -64,7 +64,7 @@ if (( ${#BASH_SOURCE[@]} == 1 )); then
     coffee::include getopt.sh
 
     function main() {
-        declare OPTOPT OPTARG OPTARRAY
+        declare OPTOPT OPTARG OPTERR OPTARRAY
 
         while coffee::getopt "ho:" "help,output:" "$@"; do
             echo "${OPTOPT}=${OPTARG}"
