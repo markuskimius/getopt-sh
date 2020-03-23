@@ -62,7 +62,7 @@ function install_crontab() {
 
     (( VERBOSE )) && header "INSTALLING NEW CRONTAB"
     for file in "${COFFEE}"/*/etc/crontab; do
-        if [[ -r "$file" ]]; then
+        if [[ -e "$file" ]]; then
             echo "Found ${file} ..."
             crontabs+=( "$file" )
         fi
