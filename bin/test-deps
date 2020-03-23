@@ -23,7 +23,7 @@ EOF
 # PROGRAM BEGINS HERE
 
 SCRIPTNAME=$(basename "${BASH_SOURCE}")
-COMMANDS=( jq cat tac grep tput getopt readlink )
+COMMANDS=( jq cat tac grep tput getopt crontab readlink )
 VARS=( HOME )
 WIDTH=40
 
