@@ -1,0 +1,12 @@
+[
+    {
+        "name": "getopt-py",
+        "method": "git",
+        "url": "https://markuskimius@github.com/markuskimius/getopt-py.git"
+    },
+    {
+        "name": "getopt-tcl",
+        "method": "git",
+        "url": "https://markuskimius@github.com/markuskimius/getopt-tcl.git"
+    }
+]
