@@ -13,3 +13,5 @@
 [[ "$-" == *i* ]] || return
 
 alias vim='vim -u "${COFFEE}/coffee/etc/vimrc"'
+alias view='vim -Ru "${COFFEE}/coffee/etc/vimrc"'
+alias vimdiff='vim -du "${COFFEE}/coffee/etc/vimrc"'
