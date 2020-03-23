@@ -83,7 +83,9 @@ function cat_cronfiles() {
     echo
 
     for file in "$@"; do
+        echo "##############################################################################"
         echo "# ${file}"
+        echo
         cat "$file"
         echo
     done

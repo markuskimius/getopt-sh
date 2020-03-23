@@ -23,9 +23,9 @@ EOF
 # PROGRAM BEGINS HERE
 
 SCRIPTNAME=$(basename "${BASH_SOURCE}")
-COMMANDS=( cat tac tput getopt readlink )
-WIDTH=40
+COMMANDS=( jq cat tac grep tput getopt crontab readlink )
 VARS=( HOME )
+WIDTH=40
 
 
 function main() {
