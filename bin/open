@@ -58,16 +58,26 @@ function main() {
 
 
 function open() {
-    path=.
-    if (( $# == 1 )); then
-        path=$1
+    local target=$(readlink -f "${1-.}")
+    local dir
+    local file
+
+    if [[ -d "$target" ]]; then
+        dir=$target
+        file=.
+    elif [[ -e "$target" ]]; then
+        dir=$(dirname "$target")
+        file=$(basename "$target")
+    else
+        echo "${1}: No such file or directory" 1>&2
+        exit 1
     fi
 
-    cd "$(dirname "$path")"
+    cd "$dir"
 
     # Cygwin
     if [[ -n $(command -v explorer.exe) ]]; then
-        explorer.exe "$(basename "$path")"
+        explorer.exe "$file"
     else
         echo "Unknown platform"
     fi
