@@ -7,6 +7,8 @@
 # https://github.com/markuskimius/coffee/blob/master/LICENSE
 ##############################################################################
 
+[[ -n $POSIXLY_CORRECT ]] && echo "cannot use coffee in posix mode" 1>&2 && return
+
 export COFFEE=${COFFEE-$(readlink -f "$(dirname "$(readlink -f "$BASH_SOURCE")")/../..")}
 export BASH_ENV=${COFFEE}/coffee/etc/bashrc
 
