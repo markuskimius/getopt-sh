@@ -1,0 +1,169 @@
+#!/bin/bash
+
+##############################################################################
+# COFFEE: Buzz up your UNIX login
+# https://github.com/markuskimius/coffee
+#
+# Copyright (c)2020 Mark K. Kim
+# Released under the Apache license 2.0
+# https://github.com/markuskimius/coffee/blob/master/LICENSE
+##############################################################################
+
+function usage() {
+    cat <<EOF
+hop onto a host using a short mnemonic.  The list of hosts are specified in
+\$COFFEE/*/etc/coffee-hosts.json.
+
+Usage: ${SCRIPTNAME} [-u] [-s] [-l] NAME
+
+  NAME                  Mnemonic of the host to hop onto.
+  -u,--user             Username associated with NAME
+  -s,--server           Server associated with NAME
+  -l,--login            Login associated with NAME, typically USERNAME@SERVER.
+
+EOF
+}
+
+
+##############################################################################
+# PROGRAM BEGINS HERE
+
+include "getopt.sh"
+
+SCRIPTNAME=$(basename "${BASH_SOURCE}")
+PARAMS=( name method username hostname )
+WIDTH=-12
+WHATIWANT=()
+
+
+function main() {
+    local OPTOPT OPTARG OPTERR OPTARRAY
+    local errcount=0
+    local name
+
+    # Process options
+    while coffee::getopt "husl" "help,user,server,login" "$@"; do
+        case "$OPTOPT" in
+            -h|--help)     usage && exit 0          ;;
+            -u|--user)     WHATIWANT+=( user )      ;;
+            -s|--server)   WHATIWANT+=( server )    ;;
+            -l|--login)    WHATIWANT+=( login )     ;;
+            *)             errcount=$((errcount+1)) ;;
+        esac
+    done
+
+    # Sanity check
+    if (( errcount )); then
+        echo "Type '${SCRIPTNAME} -h' for help." 1>&2
+        exit 1
+    fi
+
+    # Default argument
+    (( ${#OPTARRAY[@]} )) || OPTARRAY=( . )
+
+    for name in "${OPTARRAY[@]}"; do
+        hop "${name}"
+    done
+}
+
+
+function hop() {
+    local name=$1
+    local json
+    local args=()
+    local expected=${#PARAMS[@]}
+
+    for json in "${COFFEE}"/*/etc/coffee-hosts.json; do
+        if [[ -e "${json}" ]]; then
+            while IFS= read -r line; do
+                args+=( "$line" )
+            done < <(find-json "${json}" "${name}" "${PARAMS[@]}")
+        fi
+    done
+
+    (( ${#args[@]} < expected )) && echo "No such mnemonic -- $name" 1>&2 && return 1
+    (( ${#args[@]} > expected )) && list-matching "$name" "${args[@]}" && return 2
+
+    action "${args[@]}"
+}
+
+
+function find-json() {
+    local json=$1 && shift
+    local name=$1 && shift
+    local fields=()
+    local f
+
+    for f in "$@"; do
+        fields+=( ".${f}" )
+    done
+
+    jq -r --arg name "$name" ".[] | select(.name | test(\$name)) | $(join , "${fields[@]}")" "$json"
+}
+
+
+function join() {
+    IFS=$1 && shift
+
+    printf '%s\n' "$*"
+}
+
+
+function list-matching() {
+    local name=$1 && shift
+    local matches=( "$@" )
+    local pc=${#PARAMS}
+
+    WHATIWANT=( list )
+
+    while (( ${#matches[@]} )); do
+        action "${matches[@]::${pc}}"
+
+        matches=( "${matches[@]:${pc}}" )
+    done
+}
+
+
+function action() {
+    local name=$1
+    local method=$2
+    local username=$3
+    local hostname=$4
+    local output=()
+    local what
+
+    for what in "${WHATIWANT[@]}"; do
+        case "$what" in
+            user)   output+=( "$username" )                                                         ;;
+            server) output+=( "$hostname" )                                                         ;;
+            login)  output+=( "${username}@${hostname}" )                                           ;;
+            list)   output+=( "$(printf '%*s %s' "${WIDTH}" "${name}" "${username}@${hostname}")" ) ;;
+            *)      echo "We shouldn't get here -- $what" 1>&2 && coffee::throw                     ;;
+        esac
+    done
+
+    if (( ${#output[@]} )); then
+        printf "%s\n" "${output[*]}"
+    else
+        action-hop "$@"
+    fi
+}
+
+
+function action-hop() {
+    local name=$1
+    local method=$2
+    local username=$3
+    local hostname=$4
+
+    case "$method" in
+        ssh)  ssh "${username}@${hostname}" ;;
+        *)    echo "Unknown login method -- $method" 1>&2 && exit 1 ;;
+    esac
+}
+
+
+##############################################################################
+# ENTRY POINT
+
+main "$@"
