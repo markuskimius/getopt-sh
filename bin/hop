@@ -32,7 +32,7 @@ EOF
 include "getopt.sh"
 
 SCRIPTNAME=$(basename "${BASH_SOURCE}")
-PARAMS=( name method username hostname options )
+PARAMS=( name method 'username//""' hostname 'options//""' )
 WIDTHS=( -12 -30 1 )
 WHATIWANT=()
 REGEX=0
@@ -137,21 +137,24 @@ function action() {
     local username=$3
     local hostname=$4
     local options=$5
+    local login=$hostname
     local output=()
     local what
 
-    [[ "$options" == "null" ]] && options=
+    if [[ -n "$username" ]]; then
+        login="${username}@${hostname}"
+    fi
 
     for what in "${WHATIWANT[@]}"; do
         case "$what" in
-            user)   output+=( "$username" )               ;;
-            server) output+=( "$hostname" )               ;;
-            login)  output+=( "${username}@${hostname}" ) ;;
-            list)   output+=( "$(                               \
-                        printf '%*s %*s %*s'                    \
-                        ${WIDTHS[0]} "${name}"                  \
-                        ${WIDTHS[1]} "${username}@${hostname}"  \
-                        ${WIDTHS[2]} "${options}"               \
+            user)   output+=( "$username" )         ;;
+            server) output+=( "$hostname" )         ;;
+            login)  output+=( "$login" )            ;;
+            list)   output+=( "$(                 \
+                        printf '%*s %*s %*s'      \
+                        ${WIDTHS[0]} "${name}"    \
+                        ${WIDTHS[1]} "${login}"   \
+                        ${WIDTHS[2]} "${options}" \
                     )" ) ;;
             *)      echo "We shouldn't get here -- $what" 1>&2 && coffee::throw ;;
         esac
@@ -160,7 +163,7 @@ function action() {
     if (( ${#output[@]} )); then
         printf "%s\n" "${output[*]}"
     else
-        action-hop "$@"
+        action-hop "$@" "$login"
     fi
 }
 
@@ -171,11 +174,10 @@ function action-hop() {
     local username=$3
     local hostname=$4
     local options=$5
-
-    [[ "$options" == "null" ]] && options=
+    local login=$6
 
     case "$method" in
-        ssh)  ssh $options "${username}@${hostname}" ;;
+        ssh)  ssh $options "${login}"                               ;;
         *)    echo "Unknown login method -- $method" 1>&2 && exit 1 ;;
     esac
 }
