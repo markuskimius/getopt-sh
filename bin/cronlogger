@@ -1,0 +1,182 @@
+#!/bin/bash
+
+##############################################################################
+# COFFEE: Buzz up your UNIX login
+# https://github.com/markuskimius/coffee
+#
+# Copyright (c)2020 Mark K. Kim
+# Released under the Apache license 2.0
+# https://github.com/markuskimius/coffee/blob/master/LICENSE
+##############################################################################
+
+function usage() {
+    cat <<EOF
+Execute a command after loading the coffee environment and write its output to
+a log file.  The log file is created in \$COFFEE_LOGDIR in the format
+JOBNAME-YYYYMMDD_HH:MM:SS.log where JOBNAME is passed to ${SCRIPTNAME} and
+YYYYMMDD_HH:MM:SS is the time at which ${SCRIPTNAME} is started.
+
+Usage: ${SCRIPTNAME} [OPTIONS] JOBNAME COMMAND
+
+Options:
+  JOBNAME               The name of the cronjob.
+  COMMAND               Command to execute.  May be a quoted string containing
+                        arguments.
+
+  -t, --timeout=TIMEOUT Maximum runtime of the job. [Default=unlimited]
+  -k, --tokendir=PATH   Directory in which to create the token file [Default=\$COFFEE_TOKENDIR]
+  -l, --logdir=PATH     Directory in which to create the log file [Default=\$COFFEE_LOGDIR]
+  -f, --force           Run even if the token from a previous run still exists.
+  -k, --kill            Kill the job if it's still running after TIMEOUT.
+
+Environment Variables:
+  COFFEE_LOGDIR         The default directory in which to create the log file.
+  COFFEE_TOKENDIR       The default directory in which to create the token file
+                        when the script starts.  The token is removed upon the
+                        successful termination of COMMAND.
+
+Example
+  00 00 * * * "\$HOME/coffee/coffee/bin/cronlogger" -t "10 minutes" CRON_FILELIST 'find "\$HOME" -type f'
+
+EOF
+}
+
+
+##############################################################################
+# BOOTSTRAP
+
+SCRIPTDIR=$(dirname "$(readlink -f "${BASH_SOURCE}")")
+
+if [[ -f "${SCRIPTDIR}/../etc/bashrc" ]]; then
+    source "${SCRIPTDIR}/../etc/bashrc"
+fi
+
+
+##############################################################################
+# PROGRAM BEGINS HERE
+
+include "getopt.sh"
+
+SCRIPTNAME=$(basename "${BASH_SOURCE}")
+SCRIPTSTART=$(date)
+TOKENDIR=$COFFEE_TOKENDIR
+LOGDIR=$COFFEE_LOGDIR
+TIMEOUT=""
+FORCE=0
+KILL=0
+
+
+function main() {
+    local OPTOPT OPTARG OPTERR OPTARRAY
+    local logfile
+
+    # Process options
+    while coffee::getopt "hkfl:k:t:" "help,kill,force,logdir:,tokendir:,timeout:" "$@"; do
+        case "$OPTOPT" in
+            -t|--timeout)  TIMEOUT=$(date -d "$SCRIPTSTART + $OPTARG") ;;
+            -k|--tokendir) TOKENDIR=$OPTARG ;;
+            -l|--logdir)   LOGDIR=$OPTARG   ;;
+            -f|--force)    FORCE=1          ;;
+            -k|--kill)     KILL=1           ;;
+            -h|--help)     usage && exit 0  ;;
+            *)             errcount=$((errcount+1)) ;;
+        esac
+    done
+
+    if (( ${#OPTARRAY[@]} != 2 )); then
+        echo "Expected 2 arguments, got ${#OPTARRAY[@]}" 1>&2
+        errcount=$((errcount+1))
+    fi
+
+    # Sanity check
+    if (( errcount )); then
+        echo "Type '${SCRIPTNAME} -h' for help." 1>&2
+        exit 1
+    fi
+
+    cronlogger "${OPTARRAY[@]}"
+}
+
+
+function cronlogger() {
+    local jobname=$1
+    local command=$2
+    local logfile=$(logname "$jobname")
+
+    echo "$jobname cronjob logfile is $logfile"
+
+    mkdir -p $(dirname "$logfile") \
+    && run "$jobname" "$command" >& "$logfile"
+}
+
+
+function logname() {
+    local jobname=$1
+    local datetime=$(date -d "$SCRIPTSTART" "+%Y%m%d_%H:%M:%S")
+
+    echo "${LOGDIR}/${jobname}-${datetime}.log"
+}
+
+
+function run() {
+    local jobname=$1
+    local command=$2
+    local exitcode=0
+    local monitor=""
+
+    echo "$jobname started at $(date)"
+
+    if ! mktoken "$jobname"; then
+        echo "Unable to create token, terminating." 1>&2
+        exit 1
+    fi
+
+    if (( KILL )); then
+        local now=$(date +%s)
+        local future=$(date -d "$TIMEOUT" +%s)
+        local delta=$((future - now))
+
+        (( delta < 0 )) && delta=0
+        monitor="timeout $delta"
+    fi
+
+    $monitor bash <(echo "$command") || exitcode=$?
+
+    if (( exitcode == 0 )); then
+        echo "$jobname terminated successfully at $(date)"
+        rmtoken "$jobname"
+    elif (( KILL && exitcode == 124 )); then
+        echo "$jobname timed out at $(date)"
+        rmtoken "$jobname"
+    else
+        echo "$jobname terminated with exit code $exitcode at $(date)"
+    fi
+
+    return $exitcode
+}
+
+
+function mktoken() {
+    local jobname=$1
+    local tokenfile="${TOKENDIR}/${jobname}.token"
+
+    if [[ -f "$tokenfile" ]] && ! (( FORCE )); then
+        echo "${tokenfile}: already exists, terminating." 1>&2
+        exit 1
+    fi
+
+    mkdir -p $(dirname "$tokenfile") \
+    && echo "$TIMEOUT" > "$tokenfile"
+}
+
+
+function rmtoken() {
+    local jobname=$1
+    local tokenfile="${TOKENDIR}/${jobname}.token"
+
+    rm -f "$tokenfile"
+}
+
+
+main "$@"
+
