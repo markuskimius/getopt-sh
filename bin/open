@@ -75,9 +75,10 @@ function open() {
 
     cd "$dir"
 
-    # Cygwin
-    if [[ -n $(command -v explorer.exe) ]]; then
+    if [[ -n $(command -v explorer.exe) ]]; then     # Cygwin
         explorer.exe "$file"
+    elif [[ -n $(command -v /usr/bin/open) ]]; then  # macOS
+        /usr/bin/open "$file"
     else
         echo "Unknown platform"
     fi
