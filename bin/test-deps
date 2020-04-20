@@ -23,7 +23,7 @@ EOF
 # PROGRAM BEGINS HERE
 
 SCRIPTNAME=$(basename "${BASH_SOURCE}")
-COMMANDS=( jq cat git tac grep tput getopt crontab timeout readlink )
+COMMANDS=( jq ps cat git tac grep tput getopt crontab netstat timeout readlink )
 VARS=( HOME )
 WIDTH=40
 
