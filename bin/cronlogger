@@ -77,10 +77,10 @@ function main() {
     local logfile
 
     # Process options
-    while coffee::getopt "hkfl:k:t:" "help,kill,force,logdir:,tokendir:,timeout:" "$@"; do
+    while coffee::getopt "hkfl:o:t:" "help,kill,force,logdir:,tokendir:,timeout:" "$@"; do
         case "$OPTOPT" in
             -t|--timeout)  TIMEOUT=$(date -d "$SCRIPTSTART + $OPTARG") ;;
-            -k|--tokendir) TOKENDIR=$OPTARG ;;
+            -o|--tokendir) TOKENDIR=$OPTARG ;;
             -l|--logdir)   LOGDIR=$OPTARG   ;;
             -f|--force)    FORCE=1          ;;
             -k|--kill)     KILL=1           ;;
