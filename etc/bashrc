@@ -11,7 +11,7 @@
 
 export COFFEE=${COFFEE-$(readlink -f "$(dirname "$(readlink -f "$BASH_SOURCE")")/../..")}
 export COFFEE_LOGDIR=${COFFEE_LOGDIR-${COFFEE}/work/log}
-export COFFEE_TOKENDIR=${COFFEE_TOKENDIR-${COFFEE}/work/token}
+export COFFEE_TOKDIR=${COFFEE_TOKDIR-${COFFEE}/work/token}
 export BASH_ENV=${COFFEE}/coffee/etc/bashrc
 
 function coffee::main() {

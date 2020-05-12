@@ -22,14 +22,14 @@ Options:
                         arguments.
 
   -t, --timeout=TIMEOUT Maximum runtime of the job. [Default=unlimited]
-  -k, --tokendir=PATH   Directory in which to create the token file. [Default=\$COFFEE_TOKENDIR]
+  -k, --tokendir=PATH   Directory in which to create the token file. [Default=\$COFFEE_TOKDIR]
   -l, --logdir=PATH     Directory in which to create the log file. [Default=\$COFFEE_LOGDIR]
   -f, --force           Run even if the token from a previous run still exists.
   -k, --kill            Kill the job if it's still running after TIMEOUT.
 
 Environment Variables:
   COFFEE_LOGDIR         The default directory in which to create the log file.
-  COFFEE_TOKENDIR       The default directory in which to create the token file
+  COFFEE_TOKDIR         The default directory in which to create the token file
                         when the script starts.  The token is removed upon the
                         successful termination of COMMAND.
 
@@ -38,7 +38,7 @@ Files:
                         The default name of the logfile, where YYYYMMDD_hh:mm:ss
                         is the date and time of when ${SCRIPTNAME} is started.
 
-  \$COFFEE_TOKENDIR/${SCRIPTNAME}/JOBNAME.token
+  \$COFFEE_TOKDIR/${SCRIPTNAME}/JOBNAME.token
                         The default name of the token file.
 
 Example
@@ -65,7 +65,7 @@ include "getopt.sh"
 
 SCRIPTNAME=$(basename "${BASH_SOURCE}")
 SCRIPTSTART=$(date)
-TOKENDIR=$COFFEE_TOKENDIR
+TOKENDIR=$COFFEE_TOKDIR
 LOGDIR=$COFFEE_LOGDIR
 TIMEOUT=""
 FORCE=0
