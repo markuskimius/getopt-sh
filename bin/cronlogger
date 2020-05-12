@@ -154,6 +154,9 @@ function run() {
     elif (( KILL && exitcode == 124 )); then
         echo "$jobname timed out at $(date)"
         rmtoken "$jobname"
+    elif (( KILL && exitcode == 137 )); then
+        echo "$jobname timed out at $(date) (SIGKILL)"
+        rmtoken "$jobname"
     else
         echo "$jobname terminated with exit code $exitcode at $(date)"
     fi
