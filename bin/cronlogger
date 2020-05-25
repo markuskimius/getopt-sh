@@ -100,7 +100,41 @@ function main() {
         exit 1
     fi
 
+    # Install signal handlers
+    trap '__on_signal TERM' TERM
+    trap '__on_signal HUP' HUP
+    trap '__on_signal INT' INT
+    trap '__on_exit' EXIT
+
+    # Do my thing
     cronlogger "${OPTARRAY[@]}"
+}
+
+
+function __on_signal() {
+    local signal=$1
+    local signum=$(kill -l $signal)
+
+    # Record the cause of termination
+    echo "Caught $signal"
+
+    case "$signal" in
+        INT)    # SIGINT should send signal to itself to terminate.  See
+                # http://mywiki.wooledge.org/SignalTrap#Special_Note_On_SIGINT_and_SIGQUIT
+                trap - $signal
+                kill -s $signal $$
+                ;;
+
+        *)      trap - $signal
+                exit $((128 + signum))
+                ;;
+    esac
+}
+
+
+function __on_exit() {
+    # Kill all child processes
+    kill 0
 }
 
 
@@ -146,7 +180,9 @@ function run() {
         monitor="timeout $delta"
     fi
 
-    $monitor bash <(echo "$command") || exitcode=$?
+    # BASH ignores signals while a child process runs in the foreground.  Run
+    # the cronjob in the background so we can catch signals.
+    $monitor bash <<<$command & wait || exitcode=$?
 
     if (( exitcode == 0 )); then
         echo "$jobname terminated successfully at $(date)"
