@@ -1,15 +1,15 @@
 #!/bin/bash
 
 ##############################################################################
-# COFFEE: Buzz up your UNIX login
-# https://github.com/markuskimius/coffee
+# getopt-sh: getopt wrapper for bash.
+# https://github.com/markuskimius/getopt-sh
 #
 # Copyright (c)2020 Mark K. Kim
 # Released under the Apache license 2.0
 # https://github.com/markuskimius/coffee/blob/master/LICENSE
 ##############################################################################
 
-function coffee::getopt() {
+function getopt-sh() {
     local shortopts=$1
     local longopts=$2
     local isok=1
@@ -62,9 +62,9 @@ function coffee::getopt() {
 
 if (( ${#BASH_SOURCE[@]} == 1 )); then
     function main() {
-        local OPTOPT OPTARG OPTERR OPTARRAY
+        local OPTOPT OPTARG OPTARRAY
 
-        while coffee::getopt "ho:" "help,output:" "$@"; do
+        while getopt-sh "ho:" "help,output:" "$@"; do
             echo "${OPTOPT}=${OPTARG}"
         done
 

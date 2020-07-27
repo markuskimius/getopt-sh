@@ -1,36 +1,58 @@
-# coffee
-Buzz up your UNIX login.
+# getopt-sh
+getopt wrapper for bash
 
-## Requirements
-Bash. And some other utilities commonly available on Linux.
 
-## Installation
-Source `etc/bashrc` from your bash startup script.  E.g.,
+## Why?
 
+bash already has a few different getopt options, but each has a shortcoming:
+
+* `getopts` builtin can only handle short options.
+* `getopt` old binary, too, only handles short options.
+* `getopt` enhanced binary can handle long options, but it requires running a
+  few commands before and after that's not exactly intuitive to remember.
+
+This library is a wrapper around the `getopt` enhanced binary to simplify using
+long options in bash scripts.
+
+
+## How to use
+
+Here is a brief example:
+
+```bash
+while getopt-sh "ho:" "help,output:" "$@"; do
+    case "$OPTOPT" in
+        -h|--help)    usage          ;;
+        -o|--output)  OUTPUT=$OPTARG ;;
+        *)            iserror=1      ;;
+    esac
+done
+
+INPUT=( "${OPTARRAY[@]}" )
 ```
-$ mkdir ~/coffee
-$ cd ~/coffee
-$ git clone https://github.com/markuskimius/coffee.git
-$ echo 'source "${HOME}/coffee/coffee/etc/bashrc"' >> ~/.bashrc
+
+A similar example using the enhanced binary directly is:
+
+```bash
+optstring=$(getopt -o "ho:" --long "help,output:" -- "$@") || iserror=1
+eval set -- "$optstring"
+
+while (( $# )); do
+    [[ "$1" == "--" ]] && shift && break
+
+    case "$1" in
+        -h|--help)    usage              ;;
+        -o|--output)  OUTPUT=$2 && shift ;;
+    esac
+
+    shift
+done
+
+INPUT=( "$@" )
 ```
 
-## What does it do?
-Installing coffee:
+... which is a little less intuitive to read.
 
-* Provides several scripts, functions, and libraries to bash.
-* Sets the environment variable `$COFFEE` to coffee's _parent_ directory.
-* Sets other environment variables:
-  * Add `$COFFEE/*/bin` to `$PATH`
-  * Add `$COFFEE/*/lib` to `$PYTHONPATH` that contain python scripts.
-  * Add `$COFFEE/*/lib` to `$TCLLIBPATH` that contain pkgIndex.tcl.
-* Sets up vim such that:
-  * `$COFFEE/*/etc/vimrc` are automatically loaded.
-  * `$COFFEE/*` vim plugins are automatically loaded.
-
-The idea is to be able to unpack packages into `$COFFEE` to automatically set
-it up for use in your UNIX environment.  In that spirit, `etc/bashrc` also
-sources any `$COFFEE/*/etc/bashrc`.  This also means that you must be careful
-to **only unpack trusted packages in `$COFFEE`.**
 
 ## License
 
