@@ -13,6 +13,7 @@ function getopt-sh() {
     local shortopts=$1
     local longopts=$2
     local isok=1
+    local eof=0
     shift 2
 
     # Set up the positional parameters
@@ -34,6 +35,7 @@ function getopt-sh() {
     case "$OPTOPT" in
         --)  # End of parameters
              OPTOPT=-1
+             eof=1
              ;;
 
         -?)  # Short option
@@ -53,7 +55,7 @@ function getopt-sh() {
              ;;
     esac
 
-    [[ $OPTOPT != -1 ]]
+    (( ! eof ))
 }
 
 
