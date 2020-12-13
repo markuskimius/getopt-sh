@@ -59,5 +59,5 @@ INPUT=( "$@" )
 [Apache 2.0]
 
 
-[Apache 2.0]: <https://github.com/markuskimius/coffee/blob/master/LICENSE>
+[Apache 2.0]: <https://github.com/markuskimius/getopt-sh/blob/master/LICENSE>
 

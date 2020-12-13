@@ -6,7 +6,7 @@
 #
 # Copyright (c)2020 Mark K. Kim
 # Released under the Apache license 2.0
-# https://github.com/markuskimius/coffee/blob/master/LICENSE
+# https://github.com/markuskimius/getopt-sh/blob/master/LICENSE
 ##############################################################################
 
 function getopt-sh() {
