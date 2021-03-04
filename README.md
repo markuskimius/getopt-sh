@@ -12,7 +12,8 @@ bash already has a few different getopt options, but each has a shortcoming:
   few commands before and after that's not exactly intuitive to remember.
 
 This library is a wrapper around the `getopt` enhanced binary to simplify using
-long options in bash scripts.
+long options in bash scripts.  It falls back to using `getopts` should the
+enhanced `getopt` binary not available.
 
 
 ## How to use
