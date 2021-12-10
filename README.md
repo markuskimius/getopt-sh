@@ -21,6 +21,8 @@ enhanced `getopt` binary not available.
 Here is a brief example:
 
 ```bash
+source "getopt-sh"
+
 while getopt-sh "ho:" "help,output:" "$@"; do
     case "$OPTOPT" in
         -h|--help)    usage          ;;
@@ -29,7 +31,7 @@ while getopt-sh "ho:" "help,output:" "$@"; do
     esac
 done
 
-INPUT=( "${OPTARRAY[@]}" )
+INPUT=( "${OPTARG[@]}" )
 ```
 
 A similar example using the enhanced binary directly is:
@@ -57,8 +59,8 @@ INPUT=( "$@" )
 
 ## License
 
-[Apache 2.0]
+[GPLv2]
 
 
-[Apache 2.0]: <https://github.com/markuskimius/getopt-sh/blob/master/LICENSE>
+[GPLv2]: <https://github.com/markuskimius/getopt-sh/blob/master/LICENSE>
 
